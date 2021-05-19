@@ -3,7 +3,6 @@ import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import {BufferGeometryUtils} from'three/examples/jsm/utils/BufferGeometryUtils.js';
 import Stats from 'three/examples/jsm/libs/stats.module.js';
 import { GUI } from 'three/examples/jsm/libs/dat.gui.module.js';
-import { CatmullRomCurve3 } from 'three';
 
 
 
@@ -11,14 +10,13 @@ import { CatmullRomCurve3 } from 'three';
 THREE.Cache.enabled = true;
 
 console.log("Hello Webpack")
-// our futur array of bufferGeometry
-var cubes1 = []
 const loader = new THREE.FileLoader();
 // meshes
 let mesh1;
 let mesh2;
 let mesh3;
 
+let allweeks;
 
 
 //load a text file and output the result to the console
@@ -45,20 +43,10 @@ loader.load(
             return week;
         });
 
-        mesh1=generateForms(weeks,135,10,"20-29",2)
-        scene.add(mesh1);
-        mesh1.translateX(-135-20)
-        mesh1.translateZ(400)
+        allweeks=weeks;
+        makeThings(weeks);
 
-        mesh2=generateForms(weeks,145,10,"30-49",2)
-        mesh2.translateZ(400)
-        scene.add(mesh2);
-
-        mesh3=generateForms(weeks,20,10,"50-69",2)
-        scene.add(mesh3);
-        mesh3.translateX(145/2+20)
-        mesh3.translateZ(400)
-
+       
 
 	},
 
@@ -74,53 +62,13 @@ loader.load(
 );
 
 
-// This assumes no commas in the values names.
-function getCsvValuesFromLine(line) {
-    var values = line.split(',');
-   values.map(function(value){
-        return value.replace(/\"/g, '');
-    });
-    return values;
-}
-
-
-const generateForms=(weeks,l,b,name,scale)=>{
-    var material = new THREE.MeshStandardMaterial( { color: 0xaaaaaa })
-    let counter=0;
-    let maxH=0;
-    var cubes = []
-
-    weeks.map((week)=>{
-        const h=computeHeight(l,b,week[name]*scale);
-        if(h>maxH)maxH=h;
-        var geo = new THREE.BoxBufferGeometry( l, h, b);
-        geo.translate( 0, h/2, -counter*b );
-        cubes.push(geo)
-        counter++
-        })
-    
-        console.log("Maximal Height",maxH)
-        const mergedGeometry = BufferGeometryUtils.mergeBufferGeometries(cubes);
-        // now we got 1 mega big mesh with 10 000 cubes in it
-        //var mesh = new THREE.Mesh(mergedGeometry, new THREE.MeshNormalMaterial());
-        var mesh = new THREE.Mesh(mergedGeometry, material);
-
-        return mesh;
-
-    
-}
 
 
 const scene = new THREE.Scene();
 
 const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 8000);
 camera.position.z = 400;
-
 camera.position.y = 250;
-
-
-//const camera = new THREE.OrthographicCamera( window.innerWidth / - 2, window.innerWidth / 2, window.innerHeight / 2, window.innerHeight / - 2, 1, 1000 );
-//camera.position.z = 1;
 
 const renderer = new THREE.WebGLRenderer({ antialiasing: true });
 renderer.setSize(window.innerWidth, window.innerHeight);
@@ -129,7 +77,22 @@ renderer.setPixelRatio(window.devicePixelRatio);
 document.body.appendChild(renderer.domElement);
 
 const controls = new OrbitControls(camera, renderer.domElement);
+const gui = new GUI();
 
+
+// plane rotation
+var guiControlls = new function() {
+    this.width_1 = 135;
+    this.width_2 = 145;
+    this.width_3 = 20;
+    this.week_length = 10;
+}
+
+const widthControlls = gui.addFolder("Breiten")
+widthControlls.add( guiControlls, 'width_1' ).min(1).max(200).step(0.1).onChange(()=>{makeThings(allweeks)});
+widthControlls.add( guiControlls, 'width_2' ).min(1).max(200).step(0.1).onChange(()=>{makeThings(allweeks)});
+widthControlls.add( guiControlls, 'width_3' ).min(1).max(200).step(0.1).onChange(()=>{makeThings(allweeks)});
+widthControlls.add( guiControlls, 'week_length' ).min(1).max(50).step(0.1).onChange(()=>{makeThings(allweeks)});
 
 
 controls.listenToKeyEvents( window ); // optional
@@ -151,30 +114,7 @@ let mesh;
 //const material = new THREE.MeshBasicMaterial( {color: 0x00ff00} );
 var material = new THREE.MeshStandardMaterial( { color: 0xff0051 })
 const geometry = new THREE.BoxGeometry( 1, 1, 1 );
-/*
-const cube = new THREE.Mesh( geometry, material );
-scene.add( cube )
-cube.position.z=-0.5;
-cube.position.y=0.5;
 
-const geometry2 = new THREE.BoxGeometry( 1, 2, 1 );
-
-const cube2 = new THREE.Mesh( geometry2, material );
-cube2.position.z=-1;
-cube2.position.y=1;
-
-scene.add( cube2 )
-
-
-for(let i=1;i<50;i++){
-    const h=Math.random(1);
-    const geometry = new THREE.BoxGeometry( 1, h, 1 );
-    const cube = new THREE.Mesh( geometry, material );
-    cube.position.z=-i;
-    cube.position.y=h/2;
-    scene.add( cube )
-}
-*/
 
 var ambientLight = new THREE.AmbientLight ( 0xffffff, 0.3)
 scene.add( ambientLight )
@@ -182,7 +122,6 @@ scene.add( ambientLight )
 var pointLight = new THREE.PointLight( 0xffffff, 1 );
 pointLight.position.set( 25, 250, 25 );
 scene.add( pointLight );
-
 
 window.addEventListener('resize', () => {
     camera.aspect = window.innerWidth / window.innerHeight;
@@ -194,7 +133,6 @@ window.addEventListener('resize', () => {
 
 
   
-const gui = new GUI();
 
 const stats = Stats();
 document.body.appendChild(stats.dom);
@@ -222,3 +160,61 @@ function computeHeight(_l, _b, _vol) {
   }
 
 
+
+// This assumes no commas in the values names.
+function getCsvValuesFromLine(line) {
+    var values = line.split(',');
+   values.map(function(value){
+        return value.replace(/\"/g, '');
+    });
+    return values;
+}
+
+const makeThings=(weeks)=>{
+
+    scene.remove(mesh1);
+    mesh1 = undefined;
+
+    scene.remove(mesh2);
+    mesh2 = undefined;
+
+    scene.remove(mesh3);
+    mesh3 = undefined;
+
+    mesh1=generateForms(weeks,guiControlls.width_1,guiControlls.week_length,"20-29",2)
+    scene.add(mesh1);
+    mesh1.translateX(-(guiControlls.width_2/2)-(guiControlls.width_1/2)-5)
+    mesh1.translateZ(400)
+
+    mesh2=generateForms(weeks,guiControlls.width_2,guiControlls.week_length,"30-49",2)
+    mesh2.translateZ(400)
+    scene.add(mesh2);
+
+    mesh3=generateForms(weeks,guiControlls.width_3,guiControlls.week_length,"50-69",2)
+    scene.add(mesh3);
+    mesh3.translateX((guiControlls.width_2/2)+(guiControlls.width_3/2)+5)
+    mesh3.translateZ(400)
+
+}
+
+const generateForms=(weeks,l,b,name,scale)=>{
+    var material = new THREE.MeshStandardMaterial( { color: 0xaaaaaa })
+    material.flatShading=true;
+    let counter=0;
+    let maxH=0;
+    var cubes = []
+    weeks.map((week)=>{
+        const h=computeHeight(l,b,week[name]*scale);
+        if(h>maxH)maxH=h;
+        var geo = new THREE.BoxBufferGeometry( l, h, b);
+        geo.translate( 0, h/2, -counter*b );
+        cubes.push(geo)
+        counter++
+        })
+        console.log("Maximal Height",maxH)
+        const mergedGeometry = BufferGeometryUtils.mergeBufferGeometries(cubes);
+        mergedGeometry.computeVertexNormals();
+
+        var mesh = new THREE.Mesh(mergedGeometry, material);
+        return mesh;
+}

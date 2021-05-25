@@ -16,20 +16,18 @@ let mesh1;
 let mesh2;
 let mesh3;
 
-
+// top meshes
 let meshTop1;
 let meshTop2;
 let meshTop3;
 
-
-
+// data arrays
 let allweeks;
 let allmonths;
 
-
 let maxCases=0;
 
-//load a text file and output the result to the console
+//load a text file and store data
 loader.load(
 	// resource URL
 	'data.csv',
@@ -39,31 +37,30 @@ loader.load(
 		console.log( "------------------",data )
         var lines = data.split('\n');
 		console.log( "-------lines------",lines[0] )
-
         var headers = getCsvValuesFromLine(lines[0]);
 		console.log( "headers",headers )
         lines.shift(); // remove header line from array
-
+        // store data in array
         var weeks = lines.map(function(line) {
             var week = {};
             var lineValues = getCsvValuesFromLine(line);
             for (var i = 0; i < lines.length; i += 1) {
                 week[headers[i]] = lineValues[i];
-
             }
             return week;
         });
 
         allweeks=weeks;
-
+        // get max height of floor, not needet any more
+        /*
         computeMaxHeight(weeks,"20-29")
         computeMaxHeight(weeks,"30-49")
         computeMaxHeight(weeks,"50-69")
         console.log("MAX Cases",maxCases)
+        */
 
-        makeThings(weeks);
-
-
+        // make all 3 floor
+        makeFloor(weeks);
 	},
 
 	// onProgress callback
@@ -80,7 +77,7 @@ loader.load(
 
 
 
-//load a text file and output the result to the console
+//messy way to load another text file and store data
 loader.load(
 	// resource URL
 	'Arbeitslosigkeit.csv',
@@ -98,23 +95,12 @@ loader.load(
             var lineValues = getCsvValuesFromLine(line);
             for (var i = 0; i < lines.length; i += 1) {
                 month[headers[i]] = lineValues[i];
-
             }
             return month;
         });
 
         allmonths=months;
-
-       /* computeMaxHeight(weeks,"20-29")
-        computeMaxHeight(weeks,"30-49")
-        computeMaxHeight(weeks,"50-69")
-        console.log("MAX Cases",maxCases)
-
-        makeThings(weeks);
-*/
-
         makeTop(months)
-
 	},
 
 	// onProgress callback
@@ -133,77 +119,63 @@ loader.load(
 
 const scene = new THREE.Scene();
 
+// set camera
 const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 8000);
-camera.position.z = 400;
+camera.position.z = 500;
 camera.position.y = 250;
-
+// setup renderer
 const renderer = new THREE.WebGLRenderer({ antialiasing: true });
 renderer.setSize(window.innerWidth, window.innerHeight);
 renderer.setClearColor('#000000')
 renderer.setPixelRatio(window.devicePixelRatio);
 document.body.appendChild(renderer.domElement);
 
+// set gui
 const controls = new OrbitControls(camera, renderer.domElement);
 const gui = new GUI();
 
 
-// plane rotation
+//  params
 var guiControlls = new function() {
     this.width_1 = 100;//135;
     this.width_2 = 100;//145;
     this.width_3 = 100;//20;
     this.week_length = 10;
     this.factor = 8;
-
-    this.topfactor = 1;
-    this.topshift = 300;
-
-
+    this.topfactor = 8;
+    this.topshift = 350;
 }
 
+// add gui params
 const widthControlls = gui.addFolder("Breiten")
 widthControlls.add( guiControlls, 'width_1' ).min(1).max(200).step(0.1).onChange(()=>{
-    makeThings(allweeks)
+    makeFloor(allweeks)
     makeTop(allmonths)
 });
 widthControlls.add( guiControlls, 'width_2' ).min(1).max(200).step(0.1).onChange(()=>{
-    makeThings(allweeks)
+    makeFloor(allweeks)
     makeTop(allmonths)
 });
 widthControlls.add( guiControlls, 'width_3' ).min(1).max(200).step(0.1).onChange(()=>{
-    makeThings(allweeks)
+    makeFloor(allweeks)
     makeTop(allmonths)
 });
 widthControlls.add( guiControlls, 'week_length' ).min(1).max(50).step(0.1).onChange(()=>{
-    makeThings(allweeks)
+    makeFloor(allweeks)
     makeTop(allmonths)
 });
-widthControlls.add( guiControlls, 'factor' ).min(0.5).max(10).step(0.1).onChange(()=>{makeThings(allweeks)});
+widthControlls.add( guiControlls, 'factor' ).min(0.5).max(10).step(0.1).onChange(()=>{makeFloor(allweeks)});
 widthControlls.add( guiControlls, 'topfactor' ).min(0.5).max(10).step(0.1).onChange(()=>{makeTop(allmonths)});
 widthControlls.add( guiControlls, 'topshift' ).min(0).max(500).step(10).onChange(()=>{makeTop(allmonths)});
 
-
+// camera controls
 controls.listenToKeyEvents( window ); // optional
-
-//controls.addEventListener( 'change', render ); // call this only in static scenes (i.e., if there is no animation loop)
-
 controls.enableDamping = true; // an animation loop is required when either damping or auto-rotation are enabled
 controls.dampingFactor = 0.05;
-
 controls.screenSpacePanning = false;
+//controls.maxPolarAngle = Math.PI / 2;
 
-
-controls.maxPolarAngle = Math.PI / 2;
-const dummy = new THREE.Object3D();
-
-let mesh;
-
-
-//const material = new THREE.MeshBasicMaterial( {color: 0x00ff00} );
-var material = new THREE.MeshStandardMaterial( { color: 0xff0051 })
-const geometry = new THREE.BoxGeometry( 1, 1, 1 );
-
-
+// setup light
 var ambientLight = new THREE.AmbientLight ( 0xffffff, 0.1)
 scene.add( ambientLight )
 
@@ -215,6 +187,7 @@ var pointLight = new THREE.PointLight( 0xffffff, 1 );
 pointLight.position.set( 0, 100, 400 );
 scene.add( pointLight );
 
+// resize event
 window.addEventListener('resize', () => {
     camera.aspect = window.innerWidth / window.innerHeight;
     camera.updateProjectionMatrix();
@@ -222,12 +195,10 @@ window.addEventListener('resize', () => {
     render();
 }, false);
 
-
-
-  
-
+// fps stats
 const stats = Stats();
 document.body.appendChild(stats.dom);
+
 
 var animate = function () {
     requestAnimationFrame(animate);
@@ -237,31 +208,10 @@ var animate = function () {
 };
 
 function render() {
-
-
-
     renderer.render(scene, camera);
 }
 
 animate();
-
-
-function computeHeight(_l, _b, _vol) {
-    let h = _vol / (_l * _b);
-    return h;
-  }
-
-
-
-
-// This assumes no commas in the values names.
-function getCsvValuesFromLine(line) {
-    var values = line.split(',');
-   values.map(function(value){
-        return value.replace(/\"/g, '');
-    });
-    return values;
-}
 
 
 
@@ -297,8 +247,7 @@ const makeTop=(months)=>{
 }
 
 
-
-const makeThings=(weeks)=>{
+const makeFloor=(weeks)=>{
 
     scene.remove(mesh1);
     mesh1 = undefined;
@@ -327,6 +276,22 @@ const makeThings=(weeks)=>{
 
 }
 
+// HELPER
+
+// This assumes no commas in the values names.
+function getCsvValuesFromLine(line) {
+    var values = line.split(',');
+   values.map(function(value){
+        return value.replace(/\"/g, '');
+    });
+    return values;
+}
+
+
+function computeHeight(_l, _b, _vol) {
+    let h = _vol / (_l * _b);
+    return h;
+  }
 
 const computeMaxHeight=(weeks,name)=>{
     weeks.map((week)=>{
@@ -358,7 +323,6 @@ const generateForms=(weeks,b,l,name,scale)=>{
         var mesh = new THREE.Mesh(mergedGeometry, material);
         return mesh;
 }
-
 
 const generatePaperVolume=(months,b,l,name,scale)=>{
     var material = new THREE.MeshStandardMaterial( { color: 0xaaaaaa })

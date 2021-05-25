@@ -180,11 +180,11 @@ var ambientLight = new THREE.AmbientLight ( 0xffffff, 0.1)
 scene.add( ambientLight )
 
 var pointLight = new THREE.PointLight( 0xffffff, 1 );
-pointLight.position.set( 0, 100, -400 );
+pointLight.position.set( 0, 100, -500 );
 scene.add( pointLight );
 
 var pointLight = new THREE.PointLight( 0xffffff, 1 );
-pointLight.position.set( 0, 100, 400 );
+pointLight.position.set( 0, 100, 500 );
 scene.add( pointLight );
 
 // resize event
@@ -227,18 +227,18 @@ const makeTop=(months)=>{
     scene.remove(meshTop3);
     meshTop3 = undefined;
 
-    meshTop1=generatePaperVolume(months,guiControlls.width_1,guiControlls.week_length,"20-29",guiControlls.topfactor)
+    meshTop1=generatePaperDensity(months,guiControlls.width_1,guiControlls.week_length,"20-29",guiControlls.topfactor)
     scene.add(meshTop1);
     meshTop1.translateX(-(guiControlls.width_2/2)-(guiControlls.width_1/2)-5)
     meshTop1.translateZ(400)
     meshTop1.translateY(guiControlls.topshift)
 
-    meshTop2=generatePaperVolume(months,guiControlls.width_2,guiControlls.week_length,"30-49",guiControlls.topfactor)
+    meshTop2=generatePaperDensity(months,guiControlls.width_2,guiControlls.week_length,"30-49",guiControlls.topfactor)
     scene.add(meshTop2)
     meshTop2.translateZ(400)
     meshTop2.translateY(guiControlls.topshift)
 
-    meshTop3=generatePaperVolume(months,guiControlls.width_3,guiControlls.week_length,"20-29",guiControlls.topfactor)
+    meshTop3=generatePaperDensity(months,guiControlls.width_3,guiControlls.week_length,"20-29",guiControlls.topfactor)
     scene.add(meshTop3);
     meshTop3.translateX((guiControlls.width_2/2)+(guiControlls.width_3/2)+5)
     meshTop3.translateZ(400)
@@ -302,7 +302,7 @@ const computeMaxHeight=(weeks,name)=>{
 }
 
 const generateForms=(weeks,b,l,name,scale)=>{
-    var material = new THREE.MeshStandardMaterial( { color: 0xaaaaaa })
+    var material = new THREE.MeshStandardMaterial( { color: 0xcccccc })
     material.flatShading=true;
     let counter=0;
     let maxH=0;
@@ -325,7 +325,7 @@ const generateForms=(weeks,b,l,name,scale)=>{
 }
 
 const generatePaperVolume=(months,b,l,name,scale)=>{
-    var material = new THREE.MeshStandardMaterial( { color: 0xaaaaaa })
+    var material = new THREE.MeshStandardMaterial( { color: 0xcccccc })
     material.flatShading=true;
     let counter=0;
     let maxH=0;
@@ -347,3 +347,34 @@ const generatePaperVolume=(months,b,l,name,scale)=>{
         var mesh = new THREE.Mesh(mergedGeometry, material);
         return mesh;
 }
+
+
+const generatePaperDensity=(months,b,l,name,scale)=>{
+    var material = new THREE.MeshStandardMaterial( { color: 0xcccccc })
+    material.flatShading=true;
+    let counter=0;
+    let maxH=0;
+    var cubes = []
+    months.map((month)=>{
+        console.log(month)
+        let cases=parseInt(month[name], 10);
+       // const h=computeHeight(b,l*4,cases*scale);
+
+       let len=l*4;
+       for(let i=0;i<cases/5000;i++){
+        var geo = new THREE.BoxBufferGeometry( 10, 15, 0.1);
+        geo.rotateY(Math.random()*Math.PI)
+
+        geo.translate( (Math.random()*(b-20))-b/2, Math.random()*100,(-counter)+(-(Math.random()*(len-10)))+l/2);
+        cubes.push(geo)
+       }
+      
+        counter+=len
+        })
+        const mergedGeometry = BufferGeometryUtils.mergeBufferGeometries(cubes);
+        mergedGeometry.computeVertexNormals();
+
+        var mesh = new THREE.Mesh(mergedGeometry, material);
+        return mesh;
+}
+

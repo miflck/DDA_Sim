@@ -18,7 +18,6 @@ let mesh3;
 
 let allweeks;
 
-
 //load a text file and output the result to the console
 loader.load(
 	// resource URL
@@ -45,9 +44,6 @@ loader.load(
 
         allweeks=weeks;
         makeThings(weeks);
-
-       
-
 	},
 
 	// onProgress callback
@@ -82,10 +78,12 @@ const gui = new GUI();
 
 // plane rotation
 var guiControlls = new function() {
-    this.width_1 = 135;
-    this.width_2 = 145;
-    this.width_3 = 20;
+    this.width_1 = 100;//135;
+    this.width_2 = 100;//145;
+    this.width_3 = 100;//20;
     this.week_length = 10;
+    this.factor = 2;
+
 }
 
 const widthControlls = gui.addFolder("Breiten")
@@ -93,6 +91,7 @@ widthControlls.add( guiControlls, 'width_1' ).min(1).max(200).step(0.1).onChange
 widthControlls.add( guiControlls, 'width_2' ).min(1).max(200).step(0.1).onChange(()=>{makeThings(allweeks)});
 widthControlls.add( guiControlls, 'width_3' ).min(1).max(200).step(0.1).onChange(()=>{makeThings(allweeks)});
 widthControlls.add( guiControlls, 'week_length' ).min(1).max(50).step(0.1).onChange(()=>{makeThings(allweeks)});
+widthControlls.add( guiControlls, 'factor' ).min(0.5).max(10).step(0.1).onChange(()=>{makeThings(allweeks)});
 
 
 controls.listenToKeyEvents( window ); // optional
@@ -181,16 +180,16 @@ const makeThings=(weeks)=>{
     scene.remove(mesh3);
     mesh3 = undefined;
 
-    mesh1=generateForms(weeks,guiControlls.width_1,guiControlls.week_length,"20-29",2)
+    mesh1=generateForms(weeks,guiControlls.width_1,guiControlls.week_length,"20-29",guiControlls.factor)
     scene.add(mesh1);
     mesh1.translateX(-(guiControlls.width_2/2)-(guiControlls.width_1/2)-5)
     mesh1.translateZ(400)
 
-    mesh2=generateForms(weeks,guiControlls.width_2,guiControlls.week_length,"30-49",2)
+    mesh2=generateForms(weeks,guiControlls.width_2,guiControlls.week_length,"30-49",guiControlls.factor)
     mesh2.translateZ(400)
     scene.add(mesh2);
 
-    mesh3=generateForms(weeks,guiControlls.width_3,guiControlls.week_length,"50-69",2)
+    mesh3=generateForms(weeks,guiControlls.width_3,guiControlls.week_length,"50-69",guiControlls.factor)
     scene.add(mesh3);
     mesh3.translateX((guiControlls.width_2/2)+(guiControlls.width_3/2)+5)
     mesh3.translateZ(400)

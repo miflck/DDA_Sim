@@ -126,7 +126,9 @@ camera.position.y = 250;
 // setup renderer
 const renderer = new THREE.WebGLRenderer({ antialiasing: true });
 renderer.setSize(window.innerWidth, window.innerHeight);
-renderer.setClearColor('#000000')
+//renderer.setClearColor('#000000')
+renderer.setClearColor('#FFFFFF')
+
 renderer.setPixelRatio(window.devicePixelRatio);
 document.body.appendChild(renderer.domElement);
 
@@ -137,13 +139,13 @@ const gui = new GUI();
 
 //  params
 var guiControlls = new function() {
-    this.width_1 = 100;//135;
-    this.width_2 = 100;//145;
-    this.width_3 = 100;//20;
+    this.width_1 = 90;//135;
+    this.width_2 = 90;//145;
+    this.width_3 = 90;//20;
     this.week_length = 10;
-    this.factor = 8;
-    this.topfactor = 8;
-    this.topshift = 350;
+    this.factor = 7;
+    this.topfactor = 7;
+    this.topshift = 200;
 }
 
 // add gui params
@@ -227,6 +229,7 @@ const makeTop=(months)=>{
     scene.remove(meshTop3);
     meshTop3 = undefined;
 
+    
     meshTop1=generatePaperDensity(months,guiControlls.width_1,guiControlls.week_length,"20-29",guiControlls.topfactor)
     scene.add(meshTop1);
     meshTop1.translateX(-(guiControlls.width_2/2)-(guiControlls.width_1/2)-5)
@@ -243,7 +246,25 @@ const makeTop=(months)=>{
     meshTop3.translateX((guiControlls.width_2/2)+(guiControlls.width_3/2)+5)
     meshTop3.translateZ(400)
     meshTop3.translateY(guiControlls.topshift)
+/*
 
+    meshTop1=generatePaperVolume(months,guiControlls.width_1,guiControlls.week_length,"20-29",guiControlls.topfactor)
+    scene.add(meshTop1);
+    meshTop1.translateX(-(guiControlls.width_2/2)-(guiControlls.width_1/2)-5)
+    meshTop1.translateZ(400)
+    meshTop1.translateY(guiControlls.topshift)
+
+    meshTop2=generatePaperVolume(months,guiControlls.width_2,guiControlls.week_length,"30-49",guiControlls.topfactor)
+    scene.add(meshTop2)
+    meshTop2.translateZ(400)
+    meshTop2.translateY(guiControlls.topshift)
+
+    meshTop3=generatePaperVolume(months,guiControlls.width_3,guiControlls.week_length,"20-29",guiControlls.topfactor)
+    scene.add(meshTop3);
+    meshTop3.translateX((guiControlls.width_2/2)+(guiControlls.width_3/2)+5)
+    meshTop3.translateZ(400)
+    meshTop3.translateY(guiControlls.topshift)
+*/
 }
 
 
@@ -306,17 +327,32 @@ const generateForms=(weeks,b,l,name,scale)=>{
     material.flatShading=true;
     let counter=0;
     let maxH=0;
+    let totalH=0;
+
     var cubes = []
     weeks.map((week)=>{
         let cases=parseInt(week[name], 10);
         const h=computeHeight(b,l,cases*scale);
         if(h>maxH)maxH=h;
+        totalH+=h;
         var geo = new THREE.BoxBufferGeometry( b, h, l);
         geo.translate( 0, h/2, -counter*l );
         cubes.push(geo)
         counter++
         })
         console.log("Maximal Height",maxH)
+
+        var elem = document.getElementById(name);
+        let hrow = elem.querySelector('.hrow');
+        let hwrapper = hrow.querySelector('.hwrapper');
+        hwrapper.innerHTML=Math.ceil(maxH);
+
+
+        let trow = elem.querySelector('.trow');
+        let twrapper = trow.querySelector('.twrapper');
+        twrapper.innerHTML=Math.ceil(totalH);
+        
+
         const mergedGeometry = BufferGeometryUtils.mergeBufferGeometries(cubes);
         mergedGeometry.computeVertexNormals();
 
@@ -361,7 +397,7 @@ const generatePaperDensity=(months,b,l,name,scale)=>{
        // const h=computeHeight(b,l*4,cases*scale);
 
        let len=l*4;
-       for(let i=0;i<cases/5000;i++){
+       for(let i=0;i<cases/2000;i++){
         var geo = new THREE.BoxBufferGeometry( 10, 15, 0.1);
         geo.rotateY(Math.random()*Math.PI)
 

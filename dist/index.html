@@ -8,12 +8,86 @@
         width: 100%;
         height: 100%;
       }
+
+      h3{
+        margin-block-start: 0.2em;
+          margin-block-end: 0.2em;
+          border-bottom:black solid thin;
+
+      }
+
+      .wrapper{
+        position: absolute;
+        display: flex;
+        top:100px;
+        left: 20px;
+        background-color: rgba(255,255,255,0.8);
+      }
+
+      .col_wrapper{
+        display: block;
+        width:150px;
+        border-left:black solid thin;
+        padding-left: 0.5em;
+        padding-right: 0.5em;
+
+      }
+
+      .row{
+        display: flex;
+      }
+      .item{
+        display: flex;
+        border-bottom:black solid thin;
+
+        flex:1 1 50%;
+      }
     
     </style>
     <title>DDA</title>
   </head>
   <body>
     <script src="./bundle.js"></script>
+      <div class="wrapper">
+        <div class="col_wrapper" id="20-29">
+          <div class="row" >  <h3>20-29</h3></div>
+          <div class="row hrow">
+            <div class="item" >Max h:</div>
+            <div class="item hwrapper" id="1">200</div>
+          </div>
+          <div class="row trow">
+            <div class="item" >total</div>
+            <div class="item twrapper" id="1_2">200</div>
+          </div>
+        </div>
+        
+        <div class="col_wrapper" id="30-49">
+          <div class="row" >  <h3>30-49</h3></div>
 
+            <div class="row hrow">
+            <div class="item" >Max h:</div>
+            <div class="item hwrapper" id="2">200</div>
+          </div>
+
+          <div class="row trow">
+            <div class="item" >total</div>
+            <div class="item twrapper" id="2_2">200</div>
+          </div>        
+        </div>
+        
+          <div class="col_wrapper" id="50-69">
+          <div class="row" >  <h3>50-69</h3></div>
+          <div class="row hrow">
+            <div class="item" >Max h:</div>
+            <div class="item hwrapper" id="3">200</div>
+          </div>
+
+          <div class="row trow">
+            <div class="item" >total</div>
+            <div class="item twrapper" id="3_2">200</div>
+          </div>        
+        
+        </div>
+    </div>
   </body>
 </html>

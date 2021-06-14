@@ -21,6 +21,12 @@ let meshTop1;
 let meshTop2;
 let meshTop3;
 
+
+// top meshes
+let meshTop11;
+let meshTop21;
+let meshTop31;
+
 // data arrays
 let allweeks;
 let allmonths;
@@ -121,7 +127,8 @@ loader.load(
 //messy way to load another text file and store data
 loader.load(
 	// resource URL
-	'Arbeitslose 2020_maerz.csv',
+	//'Arbeitslose 2020_maerz.csv',
+    'Arbeitslose 2020_maerz_inkldiff 2.csv',
 	// onLoad callback
 	function ( data ) {
 		// output the text to the console
@@ -159,7 +166,6 @@ loader.load(
 
 
 const scene = new THREE.Scene();
-
 // set camera
 const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 8000);
 camera.position.z = 500;
@@ -167,8 +173,8 @@ camera.position.y = 250;
 // setup renderer
 const renderer = new THREE.WebGLRenderer({ antialiasing: true });
 renderer.setSize(window.innerWidth, window.innerHeight);
-//renderer.setClearColor('#000000')
-renderer.setClearColor('#FFFFFF')
+renderer.setClearColor('#000000')
+//renderer.setClearColor('#FFFFFF')
 
 renderer.setPixelRatio(window.devicePixelRatio);
 document.body.appendChild(renderer.domElement);
@@ -176,7 +182,6 @@ document.body.appendChild(renderer.domElement);
 // set gui
 const controls = new OrbitControls(camera, renderer.domElement);
 const gui = new GUI();
-
 
 //  params
 var guiControlls = new function() {
@@ -187,6 +192,8 @@ var guiControlls = new function() {
     this.factor = 4.92;//6;
     this.topfactor = 4.92;
     this.topshift = 300;
+    this.topCase="VolumeRaster"
+    this.lineScaler=800;
 }
 
 // add gui params
@@ -207,9 +214,15 @@ widthControlls.add( guiControlls, 'week_length' ).min(1).max(50).step(0.1).onCha
     makeFloor(allweeks)
     makeTop(allmonths)
 });
+
 widthControlls.add( guiControlls, 'factor' ).min(0.5).max(10).step(0.1).onChange(()=>{makeFloor(allweeks)});
-widthControlls.add( guiControlls, 'topfactor' ).min(0.5).max(10).step(0.1).onChange(()=>{makeTop(allmonths)});
-widthControlls.add( guiControlls, 'topshift' ).min(0).max(500).step(10).onChange(()=>{makeTop(allmonths)});
+
+
+const paperControls = gui.addFolder("Paper")
+paperControls.add(guiControlls, 'topCase', { Volume: 'Volume', Line: 'Line', Density: 'Density', Deviation:'Deviation', VolumeRaster:'VolumeRaster'} ).onChange(()=>{makeTop(allmonths)});
+paperControls.add( guiControlls, 'topfactor' ).min(0.5).max(10).step(0.1).onChange(()=>{makeTop(allmonths)});
+paperControls.add( guiControlls, 'topshift' ).min(0).max(500).step(10).onChange(()=>{makeTop(allmonths)});
+paperControls.add( guiControlls, 'lineScaler' ).min(0).max(4000).step(10).onChange(()=>{makeTop(allmonths)});
 
 // camera controls
 controls.listenToKeyEvents( window ); // optional
@@ -242,7 +255,6 @@ window.addEventListener('resize', () => {
 const stats = Stats();
 document.body.appendChild(stats.dom);
 
-
 var animate = function () {
     requestAnimationFrame(animate);
     controls.update();
@@ -259,7 +271,6 @@ animate();
 
 
 const makeTop=(months)=>{
-   // console.log("months",months)
 
     scene.remove(meshTop1);
     meshTop1 = undefined;
@@ -270,84 +281,180 @@ const makeTop=(months)=>{
     scene.remove(meshTop3);
     meshTop3 = undefined;
 
-    /*
-    meshTop1=generatePaperDensity(months,guiControlls.width_1,guiControlls.week_length,"20-39",guiControlls.topfactor)
-    scene.add(meshTop1);
-    meshTop1.translateX(-(guiControlls.width_2/2)-(guiControlls.width_1/2)-5)
-    meshTop1.translateZ(400)
-    meshTop1.translateY(guiControlls.topshift)
+    scene.remove(meshTop11);
+    meshTop11 = undefined;
 
-    meshTop2=generatePaperDensity(months,guiControlls.width_2,guiControlls.week_length,"40-59",guiControlls.topfactor)
-    scene.add(meshTop2)
-    meshTop2.translateZ(400)
-    meshTop2.translateY(guiControlls.topshift)
+    scene.remove(meshTop21);
+    meshTop21 = undefined;
 
-    meshTop3=generatePaperDensity(months,guiControlls.width_3,guiControlls.week_length,"60-79",guiControlls.topfactor)
-    scene.add(meshTop3);
-    meshTop3.translateX((guiControlls.width_2/2)+(guiControlls.width_3/2)+5)
-    meshTop3.translateZ(400)
-    meshTop3.translateY(guiControlls.topshift)
-*/
+    scene.remove(meshTop31);
+    meshTop31 = undefined;
 
-/*
-   meshTop1=generatePaperVolume(months,guiControlls.width_1,guiControlls.week_length,"20-39",guiControlls.topfactor)
-    scene.add(meshTop1);
-    meshTop1.translateX(-(guiControlls.width_2/2)-(guiControlls.width_1/2)-5)
-    meshTop1.translateZ(400)
-    meshTop1.translateY(guiControlls.topshift)
+    switch (guiControlls.topCase) {
+        case "Volume":
+            meshTop1=generatePaperVolume(months,guiControlls.width_1,guiControlls.week_length,"20-39",guiControlls.topfactor)
+            scene.add(meshTop1);
+            meshTop1.translateX(-(guiControlls.width_2/2)-(guiControlls.width_1/2)-5)
+            meshTop1.translateZ(400)
+            meshTop1.translateY(guiControlls.topshift)
 
-    meshTop2=generatePaperVolume(months,guiControlls.width_2,guiControlls.week_length,"40-59",guiControlls.topfactor)
-    scene.add(meshTop2)
-    meshTop2.translateZ(400)
-    meshTop2.translateY(guiControlls.topshift)
+    
 
-    meshTop3=generatePaperVolume(months,guiControlls.width_3,guiControlls.week_length,"60-79",guiControlls.topfactor)
-    scene.add(meshTop3);
-    meshTop3.translateX((guiControlls.width_2/2)+(guiControlls.width_3/2)+5)
-    meshTop3.translateZ(400)
-    meshTop3.translateY(guiControlls.topshift)
-*/
+            meshTop2=generatePaperVolume(months,guiControlls.width_2,guiControlls.week_length,"40-59",guiControlls.topfactor)
+            scene.add(meshTop2)
+            meshTop2.translateZ(400)
+            meshTop2.translateY(guiControlls.topshift)
+
+            meshTop3=generatePaperVolume(months,guiControlls.width_3,guiControlls.week_length,"60-79",guiControlls.topfactor)
+            scene.add(meshTop3);
+            meshTop3.translateX((guiControlls.width_2/2)+(guiControlls.width_3/2)+5)
+            meshTop3.translateZ(400)
+            meshTop3.translateY(guiControlls.topshift)
+        break;
+
+        case "VolumeRaster":
+            meshTop1=generatePaperHeightVolume(months,guiControlls.width_1,guiControlls.week_length,"20-39",guiControlls.topfactor)
+            scene.add(meshTop1);
+            meshTop1.translateX(-(guiControlls.width_2/2)-(guiControlls.width_1/2)-5)
+            meshTop1.translateZ(400)
+            meshTop1.translateY(guiControlls.topshift)
+
+    
+
+            meshTop2=generatePaperHeightVolume(months,guiControlls.width_2,guiControlls.week_length,"40-59",guiControlls.topfactor)
+            scene.add(meshTop2)
+            meshTop2.translateZ(400)
+            meshTop2.translateY(guiControlls.topshift)
+
+            meshTop3=generatePaperHeightVolume(months,guiControlls.width_3,guiControlls.week_length,"60-79",guiControlls.topfactor)
+            scene.add(meshTop3);
+            meshTop3.translateX((guiControlls.width_2/2)+(guiControlls.width_3/2)+5)
+            meshTop3.translateZ(400)
+            meshTop3.translateY(guiControlls.topshift)
+        break;
+
+        case "Line":
+
+            meshTop1=generatePaperHeight(months,guiControlls.width_1,guiControlls.week_length,"20-39",guiControlls.topfactor)
+            scene.add(meshTop1);
+            meshTop1.translateX(-(guiControlls.width_2/2)-(guiControlls.width_1/2)-5)
+            meshTop1.translateZ(400)
+            meshTop1.translateY(guiControlls.topshift)
+        
+            meshTop11=generatePaperHeightColor(months,guiControlls.width_1,guiControlls.week_length,"DS 20-39",guiControlls.topfactor)
+            scene.add(meshTop11);
+            meshTop11.translateX(-(guiControlls.width_2/2)-(guiControlls.width_1/2)-5)
+            meshTop11.translateZ(400)
+            meshTop11.translateY(guiControlls.topshift)
 
 
+            meshTop2=generatePaperHeight(months,guiControlls.width_2,guiControlls.week_length,"40-59",guiControlls.topfactor)
+            scene.add(meshTop2)
+            meshTop2.translateZ(400)
+            meshTop2.translateY(guiControlls.topshift)
 
-    meshTop1=generatePaperHeight(months,guiControlls.width_1,guiControlls.week_length,"20-39",guiControlls.topfactor)
-    scene.add(meshTop1);
-    meshTop1.translateX(-(guiControlls.width_2/2)-(guiControlls.width_1/2)-5)
-    meshTop1.translateZ(400)
-    meshTop1.translateY(guiControlls.topshift)
+            meshTop21=generatePaperHeightColor(months,guiControlls.width_2,guiControlls.week_length,"DS 40-49",guiControlls.topfactor)
+            scene.add(meshTop21)
+            meshTop21.translateZ(400)
+            meshTop21.translateY(guiControlls.topshift)
+            
+        
+            meshTop3=generatePaperHeight(months,guiControlls.width_3,guiControlls.week_length,"60-79",guiControlls.topfactor)
+            scene.add(meshTop3);
+            meshTop3.translateX((guiControlls.width_2/2)+(guiControlls.width_3/2)+5)
+            meshTop3.translateZ(400)
+            meshTop3.translateY(guiControlls.topshift)
 
-    meshTop2=generatePaperHeight(months,guiControlls.width_2,guiControlls.week_length,"40-59",guiControlls.topfactor)
-    scene.add(meshTop2)
-    meshTop2.translateZ(400)
-    meshTop2.translateY(guiControlls.topshift)
+            meshTop31=generatePaperHeightColor(months,guiControlls.width_3,guiControlls.week_length,"Durchschnitt 60-79",guiControlls.topfactor)
+            scene.add(meshTop31);
+            meshTop31.translateX((guiControlls.width_2/2)+(guiControlls.width_3/2)+5)
+            meshTop31.translateZ(400)
+            meshTop31.translateY(guiControlls.topshift)
 
-    meshTop3=generatePaperHeight(months,guiControlls.width_3,guiControlls.week_length,"60-79",guiControlls.topfactor)
-    scene.add(meshTop3);
-    meshTop3.translateX((guiControlls.width_2/2)+(guiControlls.width_3/2)+5)
-    meshTop3.translateZ(400)
-    meshTop3.translateY(guiControlls.topshift)
+        break;
 
+        case "Deviation":
+            /*
+            meshTop1=generatePaperHeight(months,guiControlls.width_1,guiControlls.week_length,"20-39",guiControlls.topfactor)
+            scene.add(meshTop1);
+            meshTop1.translateX(-(guiControlls.width_2/2)-(guiControlls.width_1/2)-5)
+            meshTop1.translateZ(400)
+            meshTop1.translateY(guiControlls.topshift)
+            meshTop11=generatePaperHeightColor(months,guiControlls.width_1,guiControlls.week_length,"DS 20-39",guiControlls.topfactor)
+            scene.add(meshTop11);
+            meshTop11.translateX(-(guiControlls.width_2/2)-(guiControlls.width_1/2)-5)
+            meshTop11.translateZ(400)
+            meshTop11.translateY(guiControlls.topshift)
+            */
+            meshTop11=generatePaperHeightDeviation(months,guiControlls.width_1,guiControlls.week_length,"Dif 20-39",guiControlls.topfactor)
+            scene.add(meshTop11);
+            meshTop11.translateX(-(guiControlls.width_2/2)-(guiControlls.width_1/2)-5)
+            meshTop11.translateZ(400)
+            meshTop11.translateY(guiControlls.topshift)
+            /*
+            meshTop2=generatePaperHeight(months,guiControlls.width_2,guiControlls.week_length,"40-59",guiControlls.topfactor)
+            scene.add(meshTop2)
+            meshTop2.translateZ(400)
+            meshTop2.translateY(guiControlls.topshift)
+            */
+            meshTop21=generatePaperHeightDeviation(months,guiControlls.width_2,guiControlls.week_length,"Dif 40-59",guiControlls.topfactor)
+            scene.add(meshTop21)
+            meshTop21.translateZ(400)
+            meshTop21.translateY(guiControlls.topshift)
+            /*   
+            meshTop3=generatePaperHeight(months,guiControlls.width_3,guiControlls.week_length,"60-79",guiControlls.topfactor)
+            scene.add(meshTop3);
+            meshTop3.translateX((guiControlls.width_2/2)+(guiControlls.width_3/2)+5)
+            meshTop3.translateZ(400)
+            meshTop3.translateY(guiControlls.topshift)
+           // meshTop31=generatePaperHeightColor(months,guiControlls.width_3,guiControlls.week_length,"Durchschnitt 60-79",guiControlls.topfactor)
+            meshTop31=generatePaperHeightColor(months,guiControlls.width_3,guiControlls.week_length,"Dif  60-79",guiControlls.topfactor)
+            */
+            meshTop31=generatePaperHeightDeviation(months,guiControlls.width_3,guiControlls.week_length,"Dif  60-79",guiControlls.topfactor)
+            scene.add(meshTop31);
+            meshTop31.translateX((guiControlls.width_2/2)+(guiControlls.width_3/2)+5)
+            meshTop31.translateZ(400)
+            meshTop31.translateY(guiControlls.topshift)
+        break;
+
+        case "Density":
+            meshTop1=generatePaperDensity(months,guiControlls.width_1,guiControlls.week_length,"20-39",guiControlls.topfactor)
+            scene.add(meshTop1);
+            meshTop1.translateX(-(guiControlls.width_2/2)-(guiControlls.width_1/2)-5)
+            meshTop1.translateZ(400)
+            meshTop1.translateY(guiControlls.topshift)
+        
+            meshTop2=generatePaperDensity(months,guiControlls.width_2,guiControlls.week_length,"40-59",guiControlls.topfactor)
+            scene.add(meshTop2)
+            meshTop2.translateZ(400)
+            meshTop2.translateY(guiControlls.topshift)
+
+            meshTop3=generatePaperDensity(months,guiControlls.width_3,guiControlls.week_length,"60-79",guiControlls.topfactor)
+            scene.add(meshTop3);
+            meshTop3.translateX((guiControlls.width_2/2)+(guiControlls.width_3/2)+5)
+            meshTop3.translateZ(400)
+            meshTop3.translateY(guiControlls.topshift)
+
+           
+        break;
+    }
+  
 }
 
 
 const makeFloor=(weeks)=>{
-
     scene.remove(mesh1);
     mesh1 = undefined;
-
     scene.remove(mesh2);
     mesh2 = undefined;
-
     scene.remove(mesh3);
     mesh3 = undefined;
-
    // mesh1=generateForms(weeks,guiControlls.width_1,guiControlls.week_length,"20-29",guiControlls.factor)
     mesh1=generateForms(weeks,guiControlls.width_1,guiControlls.week_length,"20-39",guiControlls.factor)
-
     scene.add(mesh1);
+
     mesh1.translateX(-(guiControlls.width_2/2)-(guiControlls.width_1/2)-5)
     mesh1.translateZ(400)
-
     mesh2=generateForms(weeks,guiControlls.width_2,guiControlls.week_length,"40-59",guiControlls.factor)
 
   //  mesh2=generateForms(weeks,guiControlls.width_2,guiControlls.week_length,"30-49",guiControlls.factor)
@@ -355,17 +462,14 @@ const makeFloor=(weeks)=>{
     scene.add(mesh2);
 
    // mesh3=generateForms(weeks,guiControlls.width_3,guiControlls.week_length,"50-69",guiControlls.factor)
-   mesh3=generateForms(weeks,guiControlls.width_3,guiControlls.week_length,"60-79",guiControlls.factor)
+    mesh3=generateForms(weeks,guiControlls.width_3,guiControlls.week_length,"60-79",guiControlls.factor)
     scene.add(mesh3);
     mesh3.translateX((guiControlls.width_2/2)+(guiControlls.width_3/2)+5)
     mesh3.translateZ(400)
-
     console.log("MAX CASES",maxCases)
-
 }
 
 // HELPER
-
 // This assumes no commas in the values names.
 function getCsvValuesFromLine(line) {
     var values = line.split(',');
@@ -375,11 +479,17 @@ function getCsvValuesFromLine(line) {
     return values;
 }
 
-
 function computeHeight(_l, _b, _vol) {
     let h = _vol / (_l * _b);
     return h;
   }
+
+
+  function computeHeightStraight(_vol,scaler) {
+    let h = _vol / scaler;
+    return h;
+  }
+
 
 const computeMaxHeight=(weeks,name)=>{
     weeks.map((week)=>{
@@ -396,41 +506,33 @@ const generateForms=(weeks,b,l,name,scale)=>{
     let counter=0;
     let maxH=0;
     let totalH=0;
-
     let minH=100;
-
 
     var cubes = []
     weeks.map((week)=>{
         let cases=parseInt(week[name], 10);
         const h=computeHeight(b,l,cases*scale);
         if(h>maxH)maxH=h;
-
         if(h<minH)minH=h;
-
         totalH+=h;
         var geo = new THREE.BoxBufferGeometry( b, h, l);
         geo.translate( 0, h/2, -counter*l );
         cubes.push(geo)
         console.log(week["Datum"],name,"height",h)
-
         counter++
         })
         console.log(name,"Maximal Height",maxH)
         console.log(name,"Minimal Height",minH)
         console.log(name,"Total Height",totalH)
-
         var elem = document.getElementById(name);
         let hrow = elem.querySelector('.hrow');
         let hwrapper = hrow.querySelector('.hwrapper');
         hwrapper.innerHTML=Math.ceil(maxH);
 
-
         let trow = elem.querySelector('.trow');
         let twrapper = trow.querySelector('.twrapper');
         twrapper.innerHTML=Math.ceil(totalH);
         
-
         const mergedGeometry = BufferGeometryUtils.mergeBufferGeometries(cubes);
         mergedGeometry.computeVertexNormals();
 
@@ -469,21 +571,12 @@ const generatePaperHeight=(months,b,l,name,scale)=>{
     let counter=0;
     let maxH=0;
     var cubes = []
-
-
     months.map((month)=>{
-     //   console.log(month)
         let cases=parseInt(month[name], 10);
-
-        
-
-       // const h=computeHeight(b,l*4,cases*scale);
-
        let len=l*4;
-       
-       const h=computeHeight(b,l*4,cases*scale);
+       //const h=computeHeight(b,l*4,cases*scale);
+       const h=computeHeightStraight(cases,guiControlls.lineScaler);
        console.log("Height",h)
-
 
        for(let i=0;i<3;i++){
        for(let j=0;j<4;j++){
@@ -496,7 +589,7 @@ const generatePaperHeight=(months,b,l,name,scale)=>{
         geo.translate( j*b/4-b/2, -h,(-counter)-i*(len/3));
         cubes.push(geo)
         }
-       }
+    }
 
 /*
        for(let i=0;i<cases/10000;i++){
@@ -514,6 +607,122 @@ const generatePaperHeight=(months,b,l,name,scale)=>{
         var mesh = new THREE.Mesh(mergedGeometry, material);
         return mesh;
 }
+
+const generatePaperHeightColor=(months,b,l,name,scale)=>{
+    var material = new THREE.MeshStandardMaterial( { color: 0xffcccc })
+    material.flatShading=true;
+    let counter=0;
+    let maxH=0;
+    var cubes = []
+    months.map((month)=>{
+        let cases=parseInt(month[name], 10);
+       let len=l*4;
+       //const h=computeHeight(b,l*4,cases*scale);
+       const h=computeHeightStraight(cases,guiControlls.lineScaler);
+       console.log("Height",h)
+
+       for(let i=0;i<3;i++){
+       for(let j=0;j<4;j++){
+
+        var geo = new THREE.BoxBufferGeometry( 3, 3, 0.1);
+        geo.rotateZ(Math.PI/8)
+
+        geo.rotateY(Math.random()*Math.PI/2)
+
+        geo.translate( j*b/4-b/2, -h,(-counter)-i*(len/3));
+        cubes.push(geo)
+        }
+    }
+        counter+=len
+        })
+        const mergedGeometry = BufferGeometryUtils.mergeBufferGeometries(cubes);
+        mergedGeometry.computeVertexNormals();
+
+        var mesh = new THREE.Mesh(mergedGeometry, material);
+        return mesh;
+}
+
+
+const generatePaperHeightDeviation=(months,b,l,name,scale)=>{
+    var material = new THREE.MeshStandardMaterial( { color: 0xcccccc })
+    material.flatShading=true;
+    let counter=0;
+    let maxH=0;
+    var cubes = []
+    months.map((month)=>{
+        let cases=parseInt(month[name], 10);
+       let len=l*4;
+       // const h=computeHeight(b,l*4,cases*scale);
+       const h=computeHeightStraight(cases,guiControlls.lineScaler);
+       console.log("Height",h)
+
+       for(let i=0;i<4;i++){
+       for(let j=0;j<4;j++){
+
+        var geo = new THREE.BoxBufferGeometry( 10, 15, 0.1);
+        geo.rotateZ(Math.PI/8)
+
+        geo.rotateY(Math.random()*Math.PI/2)
+
+        geo.translate( j*b/4-b/2, -h,(-counter)-i*(len/3));
+        cubes.push(geo)
+        }
+    }
+        counter+=len
+        })
+        const mergedGeometry = BufferGeometryUtils.mergeBufferGeometries(cubes);
+        mergedGeometry.computeVertexNormals();
+
+        var mesh = new THREE.Mesh(mergedGeometry, material);
+        return mesh;
+}
+
+
+const generatePaperHeightVolume=(months,b,l,name,scale)=>{
+    var material = new THREE.MeshStandardMaterial( { color: 0xeeeeee })
+    material.flatShading=true;
+    let counter=0;
+    let maxH=0;
+    var cubes = []
+    months.map((month)=>{
+    let cases=parseInt(month[name], 10);
+       let len=l*4;
+       const h=computeHeight(b,l*4,cases*scale);
+       //const h=computeHeightStraight(cases,guiControlls.lineScaler);
+       let paperheight=15
+       let multi=Math.ceil(h/(paperheight));
+
+0       
+
+
+
+    for(let i=0;i<1;i++){
+        for(let j=0;j<4;j++){
+            for(let k=0;k<multi;k++){
+                var geo = new THREE.BoxBufferGeometry( 10, paperheight , 0.1);
+                geo.rotateZ(Math.PI/8)
+    
+                geo.rotateY(Math.random()*Math.PI/4)
+                console.log("shift",h,k,-multi*k,k*(paperheight))
+
+                geo.translate( j*b/4-b/2, (-paperheight*k)-k*1,(-counter)-i*(len/3));
+                cubes.push(geo)
+            }
+
+
+        }
+    }
+        counter+=len
+        })
+        const mergedGeometry = BufferGeometryUtils.mergeBufferGeometries(cubes);
+        mergedGeometry.computeVertexNormals();
+
+        var mesh = new THREE.Mesh(mergedGeometry, material);
+        return mesh;
+}
+
+
+
 
 
 const generatePaperDensity=(months,b,l,name,scale)=>{

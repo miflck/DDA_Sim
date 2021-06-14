@@ -27,6 +27,7 @@ let allmonths;
 
 let maxCases=0;
 
+/*
 //load a text file and store data
 loader.load(
 	// resource URL
@@ -52,12 +53,52 @@ loader.load(
 
         allweeks=weeks;
         // get max height of floor, not needet any more
-        /*
-        computeMaxHeight(weeks,"20-29")
-        computeMaxHeight(weeks,"30-49")
-        computeMaxHeight(weeks,"50-69")
-        console.log("MAX Cases",maxCases)
-        */
+        
+
+    
+        // make all 3 floor
+        makeFloor(weeks);
+	},
+
+	// onProgress callback
+	function ( xhr ) {
+		console.log( (xhr.loaded / xhr.total * 100) + '% loaded' );
+	},
+
+	// onError callback
+	function ( err ) {
+		console.error( 'An error happened' );
+	}
+);
+*/
+
+
+
+//load a text file and store data
+loader.load(
+	// resource URL
+	'Zahlen_Alter_Mai_2.csv',
+	// onLoad callback
+	function ( data ) {
+		// output the text to the console
+		console.log( "------------------",data )
+        var lines = data.split('\n');
+		console.log( "-------lines------",lines[0] )
+        var headers = getCsvValuesFromLine(lines[0]);
+		console.log( "headers",headers )
+        lines.shift(); // remove header line from array
+        // store data in array
+        var weeks = lines.map(function(line) {
+            var week = {};
+            var lineValues = getCsvValuesFromLine(line);
+            for (var i = 0; i < lines.length; i += 1) {
+                week[headers[i]] = lineValues[i];
+            }
+            return week;
+        });
+
+        allweeks=weeks;
+ 
 
         // make all 3 floor
         makeFloor(weeks);
@@ -139,12 +180,12 @@ const gui = new GUI();
 
 //  params
 var guiControlls = new function() {
-    this.width_1 = 90;//135;
-    this.width_2 = 90;//145;
-    this.width_3 = 90;//20;
+    this.width_1 = 82;//135;
+    this.width_2 = 82;//145;
+    this.width_3 = 82;//20;
     this.week_length = 10;
-    this.factor = 7;
-    this.topfactor = 7;
+    this.factor = 4.92;//6;
+    this.topfactor = 6;
     this.topshift = 200;
 }
 
@@ -218,7 +259,7 @@ animate();
 
 
 const makeTop=(months)=>{
-    console.log("months",months)
+   // console.log("months",months)
 
     scene.remove(meshTop1);
     meshTop1 = undefined;
@@ -229,7 +270,7 @@ const makeTop=(months)=>{
     scene.remove(meshTop3);
     meshTop3 = undefined;
 
-    
+    /*
     meshTop1=generatePaperDensity(months,guiControlls.width_1,guiControlls.week_length,"20-29",guiControlls.topfactor)
     scene.add(meshTop1);
     meshTop1.translateX(-(guiControlls.width_2/2)-(guiControlls.width_1/2)-5)
@@ -246,9 +287,9 @@ const makeTop=(months)=>{
     meshTop3.translateX((guiControlls.width_2/2)+(guiControlls.width_3/2)+5)
     meshTop3.translateZ(400)
     meshTop3.translateY(guiControlls.topshift)
-/*
+*/
 
-    meshTop1=generatePaperVolume(months,guiControlls.width_1,guiControlls.week_length,"20-29",guiControlls.topfactor)
+    /*meshTop1=generatePaperVolume(months,guiControlls.width_1,guiControlls.week_length,"20-29",guiControlls.topfactor)
     scene.add(meshTop1);
     meshTop1.translateX(-(guiControlls.width_2/2)-(guiControlls.width_1/2)-5)
     meshTop1.translateZ(400)
@@ -265,6 +306,25 @@ const makeTop=(months)=>{
     meshTop3.translateZ(400)
     meshTop3.translateY(guiControlls.topshift)
 */
+
+
+    meshTop1=generatePaperHeight(months,guiControlls.width_1,guiControlls.week_length,"20-29",guiControlls.topfactor)
+    scene.add(meshTop1);
+    meshTop1.translateX(-(guiControlls.width_2/2)-(guiControlls.width_1/2)-5)
+    meshTop1.translateZ(400)
+    meshTop1.translateY(guiControlls.topshift)
+
+    meshTop2=generatePaperHeight(months,guiControlls.width_2,guiControlls.week_length,"30-49",guiControlls.topfactor)
+    scene.add(meshTop2)
+    meshTop2.translateZ(400)
+    meshTop2.translateY(guiControlls.topshift)
+
+    meshTop3=generatePaperHeight(months,guiControlls.width_3,guiControlls.week_length,"20-29",guiControlls.topfactor)
+    scene.add(meshTop3);
+    meshTop3.translateX((guiControlls.width_2/2)+(guiControlls.width_3/2)+5)
+    meshTop3.translateZ(400)
+    meshTop3.translateY(guiControlls.topshift)
+
 }
 
 
@@ -279,16 +339,21 @@ const makeFloor=(weeks)=>{
     scene.remove(mesh3);
     mesh3 = undefined;
 
-    mesh1=generateForms(weeks,guiControlls.width_1,guiControlls.week_length,"20-29",guiControlls.factor)
+   // mesh1=generateForms(weeks,guiControlls.width_1,guiControlls.week_length,"20-29",guiControlls.factor)
+    mesh1=generateForms(weeks,guiControlls.width_1,guiControlls.week_length,"20-39",guiControlls.factor)
+
     scene.add(mesh1);
     mesh1.translateX(-(guiControlls.width_2/2)-(guiControlls.width_1/2)-5)
     mesh1.translateZ(400)
 
-    mesh2=generateForms(weeks,guiControlls.width_2,guiControlls.week_length,"30-49",guiControlls.factor)
+    mesh2=generateForms(weeks,guiControlls.width_2,guiControlls.week_length,"40-59",guiControlls.factor)
+
+  //  mesh2=generateForms(weeks,guiControlls.width_2,guiControlls.week_length,"30-49",guiControlls.factor)
     mesh2.translateZ(400)
     scene.add(mesh2);
 
-    mesh3=generateForms(weeks,guiControlls.width_3,guiControlls.week_length,"50-69",guiControlls.factor)
+   // mesh3=generateForms(weeks,guiControlls.width_3,guiControlls.week_length,"50-69",guiControlls.factor)
+   mesh3=generateForms(weeks,guiControlls.width_3,guiControlls.week_length,"60-79",guiControlls.factor)
     scene.add(mesh3);
     mesh3.translateX((guiControlls.width_2/2)+(guiControlls.width_3/2)+5)
     mesh3.translateZ(400)
@@ -323,24 +388,35 @@ const computeMaxHeight=(weeks,name)=>{
 }
 
 const generateForms=(weeks,b,l,name,scale)=>{
+    console.log("weeks",weeks)
     var material = new THREE.MeshStandardMaterial( { color: 0xcccccc })
     material.flatShading=true;
     let counter=0;
     let maxH=0;
     let totalH=0;
 
+    let minH=100;
+
+
     var cubes = []
     weeks.map((week)=>{
         let cases=parseInt(week[name], 10);
         const h=computeHeight(b,l,cases*scale);
         if(h>maxH)maxH=h;
+
+        if(h<minH)minH=h;
+
         totalH+=h;
         var geo = new THREE.BoxBufferGeometry( b, h, l);
         geo.translate( 0, h/2, -counter*l );
         cubes.push(geo)
+        console.log(week["Datum"],name,"height",h)
+
         counter++
         })
-        console.log("Maximal Height",maxH)
+        console.log(name,"Maximal Height",maxH)
+        console.log(name,"Minimal Height",minH)
+        console.log(name,"Total Height",totalH)
 
         var elem = document.getElementById(name);
         let hrow = elem.querySelector('.hrow');
@@ -385,6 +461,56 @@ const generatePaperVolume=(months,b,l,name,scale)=>{
 }
 
 
+const generatePaperHeight=(months,b,l,name,scale)=>{
+    var material = new THREE.MeshStandardMaterial( { color: 0xcccccc })
+    material.flatShading=true;
+    let counter=0;
+    let maxH=0;
+    var cubes = []
+
+
+    months.map((month)=>{
+     //   console.log(month)
+        let cases=parseInt(month[name], 10);
+
+        
+
+       // const h=computeHeight(b,l*4,cases*scale);
+
+       let len=l*4;
+       
+       const h=computeHeight(b,l*4,cases*scale);
+       console.log("Height",h)
+
+
+       for(let i=0;i<3;i++){
+       for(let j=0;j<6;j++){
+
+        var geo = new THREE.BoxBufferGeometry( 10, 15, 0.1);
+        //geo.rotateY(Math.random()*Math.PI)
+        geo.translate( j*b/6-b/2, -h,(-counter)-i*(len/3));
+        cubes.push(geo)
+        }
+       }
+
+/*
+       for(let i=0;i<cases/10000;i++){
+        var geo = new THREE.BoxBufferGeometry( 10, 15, 0.1);
+        geo.rotateY(Math.random()*Math.PI)
+        //geo.translate( (Math.random()*(b-20))-b/2, h,(-counter)+(-(Math.random()*(len-10)))+l/2);
+        cubes.push(geo)
+       }
+      */
+        counter+=len
+        })
+        const mergedGeometry = BufferGeometryUtils.mergeBufferGeometries(cubes);
+        mergedGeometry.computeVertexNormals();
+
+        var mesh = new THREE.Mesh(mergedGeometry, material);
+        return mesh;
+}
+
+
 const generatePaperDensity=(months,b,l,name,scale)=>{
     var material = new THREE.MeshStandardMaterial( { color: 0xcccccc })
     material.flatShading=true;
@@ -392,7 +518,7 @@ const generatePaperDensity=(months,b,l,name,scale)=>{
     let maxH=0;
     var cubes = []
     months.map((month)=>{
-        console.log(month)
+     //   console.log(month)
         let cases=parseInt(month[name], 10);
        // const h=computeHeight(b,l*4,cases*scale);
 

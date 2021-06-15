@@ -10,6 +10,10 @@ import { GUI } from 'three/examples/jsm/libs/dat.gui.module.js';
 THREE.Cache.enabled = true;
 
 console.log("Hello Webpack")
+
+let paperheight=29
+let paperwidth=21
+
 const loader = new THREE.FileLoader();
 // meshes
 let mesh1;
@@ -189,10 +193,10 @@ var guiControlls = new function() {
     this.width_2 = 82;//145;
     this.width_3 = 82;//20;
     this.week_length = 10;
-    this.factor = 4.92;//6;
+    this.factor = 4.94671225;//4.92;//6;
     this.topfactor = 4.92;
     this.topshift = 300;
-    this.topCase="VolumeRaster"
+    this.topCase="Line"
     this.lineScaler=800;
 }
 
@@ -222,7 +226,7 @@ const paperControls = gui.addFolder("Paper")
 paperControls.add(guiControlls, 'topCase', { Volume: 'Volume', Line: 'Line', Density: 'Density', Deviation:'Deviation', VolumeRaster:'VolumeRaster'} ).onChange(()=>{makeTop(allmonths)});
 paperControls.add( guiControlls, 'topfactor' ).min(0.5).max(10).step(0.1).onChange(()=>{makeTop(allmonths)});
 paperControls.add( guiControlls, 'topshift' ).min(0).max(500).step(10).onChange(()=>{makeTop(allmonths)});
-paperControls.add( guiControlls, 'lineScaler' ).min(0).max(4000).step(10).onChange(()=>{makeTop(allmonths)});
+paperControls.add( guiControlls, 'lineScaler' ).min(0).max(4000).step(10).onChange(()=>{makeTop(allmonths)});//.listen();
 
 // camera controls
 controls.listenToKeyEvents( window ); // optional
@@ -386,30 +390,35 @@ const makeTop=(months)=>{
             meshTop11.translateZ(400)
             meshTop11.translateY(guiControlls.topshift)
             */
+
+            meshTop1=makeLine(months,guiControlls.width_1,guiControlls.week_length,0)
+            scene.add(meshTop1);
+            meshTop1.translateX(-(guiControlls.width_2/2)-(guiControlls.width_1/2)-5)
+            meshTop1.translateZ(400)
+            meshTop1.translateY(guiControlls.topshift)
+            
             meshTop11=generatePaperHeightDeviation(months,guiControlls.width_1,guiControlls.week_length,"Dif 20-39",guiControlls.topfactor)
             scene.add(meshTop11);
             meshTop11.translateX(-(guiControlls.width_2/2)-(guiControlls.width_1/2)-5)
             meshTop11.translateZ(400)
             meshTop11.translateY(guiControlls.topshift)
-            /*
-            meshTop2=generatePaperHeight(months,guiControlls.width_2,guiControlls.week_length,"40-59",guiControlls.topfactor)
+            
+            meshTop2=makeLine(months,guiControlls.width_2,guiControlls.week_length,0)
             scene.add(meshTop2)
             meshTop2.translateZ(400)
             meshTop2.translateY(guiControlls.topshift)
-            */
+            
             meshTop21=generatePaperHeightDeviation(months,guiControlls.width_2,guiControlls.week_length,"Dif 40-59",guiControlls.topfactor)
             scene.add(meshTop21)
             meshTop21.translateZ(400)
             meshTop21.translateY(guiControlls.topshift)
-            /*   
-            meshTop3=generatePaperHeight(months,guiControlls.width_3,guiControlls.week_length,"60-79",guiControlls.topfactor)
+              
+            meshTop3=generatePaperHeight(months,guiControlls.width_3,guiControlls.week_length,0)
             scene.add(meshTop3);
             meshTop3.translateX((guiControlls.width_2/2)+(guiControlls.width_3/2)+5)
             meshTop3.translateZ(400)
             meshTop3.translateY(guiControlls.topshift)
-           // meshTop31=generatePaperHeightColor(months,guiControlls.width_3,guiControlls.week_length,"Durchschnitt 60-79",guiControlls.topfactor)
-            meshTop31=generatePaperHeightColor(months,guiControlls.width_3,guiControlls.week_length,"Dif  60-79",guiControlls.topfactor)
-            */
+            
             meshTop31=generatePaperHeightDeviation(months,guiControlls.width_3,guiControlls.week_length,"Dif  60-79",guiControlls.topfactor)
             scene.add(meshTop31);
             meshTop31.translateX((guiControlls.width_2/2)+(guiControlls.width_3/2)+5)
@@ -518,7 +527,7 @@ const generateForms=(weeks,b,l,name,scale)=>{
         var geo = new THREE.BoxBufferGeometry( b, h, l);
         geo.translate( 0, h/2, -counter*l );
         cubes.push(geo)
-        console.log(week["Datum"],name,"height",h)
+        console.log(week["Datum"],name,"height:",h)
         counter++
         })
         console.log(name,"Maximal Height",maxH)
@@ -549,9 +558,9 @@ const generatePaperVolume=(months,b,l,name,scale)=>{
     months.map((month)=>{
         console.log(month)
         let cases=parseInt(month[name], 10);
-       console.log("AC",b,l*4,cases)
+       //console.log("AC",b,l*4,cases)
         const h=computeHeight(b,l*4,cases*scale);
-        console.log("Height",h)
+       // console.log("Height",h)
         var geo = new THREE.BoxBufferGeometry( b, h, l*4);
         geo.translate( 0, -h/2, -counter*l*4 );
         cubes.push(geo)
@@ -576,17 +585,17 @@ const generatePaperHeight=(months,b,l,name,scale)=>{
        let len=l*4;
        //const h=computeHeight(b,l*4,cases*scale);
        const h=computeHeightStraight(cases,guiControlls.lineScaler);
-       console.log("Height",h)
+      // console.log("Height",h)
 
        for(let i=0;i<3;i++){
        for(let j=0;j<4;j++){
 
-        var geo = new THREE.BoxBufferGeometry( 10, 15, 0.1);
+        var geo = new THREE.BoxBufferGeometry( paperwidth, paperheight, 0.1);
         geo.rotateZ(Math.PI/8)
 
         geo.rotateY(Math.random()*Math.PI/2)
 
-        geo.translate( j*b/4-b/2, -h,(-counter)-i*(len/3));
+        geo.translate( j*b/4-b/2, -h-paperheight/2,(-counter)-i*(len/3));
         cubes.push(geo)
         }
     }
@@ -614,22 +623,20 @@ const generatePaperHeightColor=(months,b,l,name,scale)=>{
     let counter=0;
     let maxH=0;
     var cubes = []
+    let myheight=5;
+    let mywidth=5;
     months.map((month)=>{
         let cases=parseInt(month[name], 10);
        let len=l*4;
        //const h=computeHeight(b,l*4,cases*scale);
        const h=computeHeightStraight(cases,guiControlls.lineScaler);
-       console.log("Height",h)
-
        for(let i=0;i<3;i++){
        for(let j=0;j<4;j++){
 
-        var geo = new THREE.BoxBufferGeometry( 3, 3, 0.1);
-        geo.rotateZ(Math.PI/8)
-
-        geo.rotateY(Math.random()*Math.PI/2)
-
-        geo.translate( j*b/4-b/2, -h,(-counter)-i*(len/3));
+        var geo = new THREE.BoxBufferGeometry( mywidth, myheight, 0.1);
+      //  geo.rotateZ(Math.PI/8)
+       // geo.rotateY(Math.random()*Math.PI/2)
+        geo.translate( j*b/4-b/2, -h-myheight/2,(-counter)-i*(len/3));
         cubes.push(geo)
         }
     }
@@ -649,17 +656,19 @@ const generatePaperHeightDeviation=(months,b,l,name,scale)=>{
     let counter=0;
     let maxH=0;
     var cubes = []
+
+
     months.map((month)=>{
         let cases=parseInt(month[name], 10);
        let len=l*4;
        // const h=computeHeight(b,l*4,cases*scale);
        const h=computeHeightStraight(cases,guiControlls.lineScaler);
-       console.log("Height",h)
+  //     console.log("Height",h)
 
        for(let i=0;i<4;i++){
        for(let j=0;j<4;j++){
 
-        var geo = new THREE.BoxBufferGeometry( 10, 15, 0.1);
+        var geo = new THREE.BoxBufferGeometry( paperwidth, paperheight, 0.1);
         geo.rotateZ(Math.PI/8)
 
         geo.rotateY(Math.random()*Math.PI/2)
@@ -682,6 +691,7 @@ const generatePaperHeightVolume=(months,b,l,name,scale)=>{
     var material = new THREE.MeshStandardMaterial( { color: 0xeeeeee })
     material.flatShading=true;
     let counter=0;
+    let papercounter=0;
     let maxH=0;
     var cubes = []
     months.map((month)=>{
@@ -689,24 +699,27 @@ const generatePaperHeightVolume=(months,b,l,name,scale)=>{
        let len=l*4;
        const h=computeHeight(b,l*4,cases*scale);
        //const h=computeHeightStraight(cases,guiControlls.lineScaler);
-       let paperheight=15
+
+
        let multi=Math.ceil(h/(paperheight));
 
-0       
+     
 
 
 
-    for(let i=0;i<1;i++){
-        for(let j=0;j<4;j++){
+    for(let i=0;i<3;i++){
+        for(let j=0;j<3;j++){
             for(let k=0;k<multi;k++){
-                var geo = new THREE.BoxBufferGeometry( 10, paperheight , 0.1);
+                var geo = new THREE.BoxBufferGeometry( paperwidth, paperheight , 0.1);
                 geo.rotateZ(Math.PI/8)
     
                 geo.rotateY(Math.random()*Math.PI/4)
                 console.log("shift",h,k,-multi*k,k*(paperheight))
 
-                geo.translate( j*b/4-b/2, (-paperheight*k)-k*1,(-counter)-i*(len/3));
+                //*b/4-b/2
+                geo.translate( ((-b/2+paperwidth/2)+j*paperwidth)+j*0.5, (-paperheight*k)-k*1,(-counter)-i*(len/3));
                 cubes.push(geo)
+                papercounter++;
             }
 
 
@@ -718,6 +731,7 @@ const generatePaperHeightVolume=(months,b,l,name,scale)=>{
         mergedGeometry.computeVertexNormals();
 
         var mesh = new THREE.Mesh(mergedGeometry, material);
+        console.log("Total Paper: ",papercounter);
         return mesh;
 }
 
@@ -738,7 +752,7 @@ const generatePaperDensity=(months,b,l,name,scale)=>{
 
        let len=l*4;
        for(let i=0;i<cases/2000;i++){
-        var geo = new THREE.BoxBufferGeometry( 10, 15, 0.1);
+        var geo = new THREE.BoxBufferGeometry( paperwidth, paperheight, 0.1);
         geo.rotateY(Math.random()*Math.PI)
 
         geo.translate( (Math.random()*(b-20))-b/2, Math.random()*100,(-counter)+(-(Math.random()*(len-10)))+l/2);
@@ -753,4 +767,38 @@ const generatePaperDensity=(months,b,l,name,scale)=>{
         var mesh = new THREE.Mesh(mergedGeometry, material);
         return mesh;
 }
+
+
+
+const makeLine=(months,b,l,h)=>{
+    var material = new THREE.MeshStandardMaterial( { color: 0xffccff })
+    material.flatShading=true;
+    let counter=0;
+    let maxH=0;
+    var cubes = []
+    let myheight=5;
+    let mywidth=5;
+    months.map((month)=>{
+        let cases=parseInt(month[name], 10);
+       let len=l*4;
+       //const h=computeHeight(b,l*4,cases*scale);
+       for(let i=0;i<3;i++){
+       for(let j=0;j<4;j++){
+
+        var geo = new THREE.BoxBufferGeometry( mywidth, myheight, 0.1);
+      //  geo.rotateZ(Math.PI/8)
+       // geo.rotateY(Math.random()*Math.PI/2)
+        geo.translate( j*b/4-b/2, -h-myheight/2,(-counter)-i*(len/3));
+        cubes.push(geo)
+        }
+    }
+        counter+=len
+        })
+        const mergedGeometry = BufferGeometryUtils.mergeBufferGeometries(cubes);
+        mergedGeometry.computeVertexNormals();
+
+        var mesh = new THREE.Mesh(mergedGeometry, material);
+        return mesh;
+}
+
 

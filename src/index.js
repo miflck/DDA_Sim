@@ -13,6 +13,8 @@ console.log("Hello Webpack")
 
 let paperheight=29
 let paperwidth=21
+let numCol=3;
+let gap=2;
 
 const loader = new THREE.FileLoader();
 // meshes
@@ -558,9 +560,7 @@ const generatePaperVolume=(months,b,l,name,scale)=>{
     months.map((month)=>{
         console.log(month)
         let cases=parseInt(month[name], 10);
-       //console.log("AC",b,l*4,cases)
         const h=computeHeight(b,l*4,cases*scale);
-       // console.log("Height",h)
         var geo = new THREE.BoxBufferGeometry( b, h, l*4);
         geo.translate( 0, -h/2, -counter*l*4 );
         cubes.push(geo)
@@ -580,39 +580,29 @@ const generatePaperHeight=(months,b,l,name,scale)=>{
     let counter=0;
     let maxH=0;
     var cubes = []
+
+  
+    let  offset=b-((paperwidth*numCol)+((numCol-1)*gap));
+
+
     months.map((month)=>{
-        let cases=parseInt(month[name], 10);
+    let cases=parseInt(month[name], 10);
        let len=l*4;
-       //const h=computeHeight(b,l*4,cases*scale);
        const h=computeHeightStraight(cases,guiControlls.lineScaler);
-      // console.log("Height",h)
-
        for(let i=0;i<3;i++){
-       for(let j=0;j<4;j++){
-
-        var geo = new THREE.BoxBufferGeometry( paperwidth, paperheight, 0.1);
-        geo.rotateZ(Math.PI/8)
-
-        geo.rotateY(Math.random()*Math.PI/2)
-
-        geo.translate( j*b/4-b/2, -h-paperheight/2,(-counter)-i*(len/3));
-        cubes.push(geo)
+        for(let j=0;j<numCol;j++){
+            var geo = new THREE.BoxBufferGeometry( paperwidth, paperheight, 0.1);
+            geo.rotateZ(Math.PI/8)
+            geo.rotateY(Math.random()*Math.PI/2)
+        // geo.translate( j*b/4-b/2, -h-paperheight/2,(-counter)-i*(len/3));
+            geo.translate( -b/2+paperwidth/2 +j*paperwidth+offset/2 +j*gap, -h-paperheight/2,(-counter)-i*(len/3));
+            cubes.push(geo)
+            }
         }
-    }
-
-/*
-       for(let i=0;i<cases/10000;i++){
-        var geo = new THREE.BoxBufferGeometry( 10, 15, 0.1);
-        geo.rotateY(Math.random()*Math.PI)
-        //geo.translate( (Math.random()*(b-20))-b/2, h,(-counter)+(-(Math.random()*(len-10)))+l/2);
-        cubes.push(geo)
-       }
-      */
         counter+=len
         })
         const mergedGeometry = BufferGeometryUtils.mergeBufferGeometries(cubes);
         mergedGeometry.computeVertexNormals();
-
         var mesh = new THREE.Mesh(mergedGeometry, material);
         return mesh;
 }
@@ -625,28 +615,30 @@ const generatePaperHeightColor=(months,b,l,name,scale)=>{
     var cubes = []
     let myheight=5;
     let mywidth=5;
+
+
+let  offset=b-((paperwidth*numCol)+((numCol-1)*gap));
+
+
     months.map((month)=>{
         let cases=parseInt(month[name], 10);
-       let len=l*4;
-       //const h=computeHeight(b,l*4,cases*scale);
-       const h=computeHeightStraight(cases,guiControlls.lineScaler);
-       for(let i=0;i<3;i++){
-       for(let j=0;j<4;j++){
-
-        var geo = new THREE.BoxBufferGeometry( mywidth, myheight, 0.1);
-      //  geo.rotateZ(Math.PI/8)
-       // geo.rotateY(Math.random()*Math.PI/2)
-        geo.translate( j*b/4-b/2, -h-myheight/2,(-counter)-i*(len/3));
-        cubes.push(geo)
-        }
-    }
+        let len=l*4;
+        //const h=computeHeight(b,l*4,cases*scale);
+        const h=computeHeightStraight(cases,guiControlls.lineScaler);
+        for(let i=0;i<3;i++){
+            for(let j=0;j<numCol;j++){
+                var geo = new THREE.BoxBufferGeometry( mywidth, myheight, 0.1);
+            // geo.translate( j*b/4-b/2, -h-myheight/2,(-counter)-i*(len/3));
+                geo.translate( -b/2+paperwidth/2 +j*paperwidth+offset/2 +j*gap, -h-myheight/2,(-counter)-i*(len/3));
+                cubes.push(geo)
+                }
+            }
         counter+=len
-        })
-        const mergedGeometry = BufferGeometryUtils.mergeBufferGeometries(cubes);
-        mergedGeometry.computeVertexNormals();
-
-        var mesh = new THREE.Mesh(mergedGeometry, material);
-        return mesh;
+    })
+    const mergedGeometry = BufferGeometryUtils.mergeBufferGeometries(cubes);
+    mergedGeometry.computeVertexNormals();
+    var mesh = new THREE.Mesh(mergedGeometry, material);
+    return mesh;
 }
 
 
@@ -657,33 +649,31 @@ const generatePaperHeightDeviation=(months,b,l,name,scale)=>{
     let maxH=0;
     var cubes = []
 
+    let  offset=b-((paperwidth*numCol)+((numCol-1)*gap));
+
 
     months.map((month)=>{
         let cases=parseInt(month[name], 10);
-       let len=l*4;
+        let len=l*4;
        // const h=computeHeight(b,l*4,cases*scale);
-       const h=computeHeightStraight(cases,guiControlls.lineScaler);
-  //     console.log("Height",h)
+        const h=computeHeightStraight(cases,guiControlls.lineScaler);
+        for(let i=0;i<3;i++){
+            for(let j=0;j<numCol;j++){
+                var geo = new THREE.BoxBufferGeometry( paperwidth, paperheight, 0.1);
+               // geo.rotateZ(Math.PI/8)
+               // geo.rotateY(Math.random()*Math.PI/2)
+                //geo.translate( j*b/4-b/2, -h-paperheight/2,(-counter)-i*(len/3));
+                geo.translate( -b/2+paperwidth/2 +j*paperwidth+offset/2 +j*gap, -h-paperheight/2,(-counter)-i*(len/3));
 
-       for(let i=0;i<4;i++){
-       for(let j=0;j<4;j++){
-
-        var geo = new THREE.BoxBufferGeometry( paperwidth, paperheight, 0.1);
-        geo.rotateZ(Math.PI/8)
-
-        geo.rotateY(Math.random()*Math.PI/2)
-
-        geo.translate( j*b/4-b/2, -h,(-counter)-i*(len/3));
-        cubes.push(geo)
+                cubes.push(geo)
+            }
         }
-    }
         counter+=len
-        })
-        const mergedGeometry = BufferGeometryUtils.mergeBufferGeometries(cubes);
-        mergedGeometry.computeVertexNormals();
-
-        var mesh = new THREE.Mesh(mergedGeometry, material);
-        return mesh;
+    })
+    const mergedGeometry = BufferGeometryUtils.mergeBufferGeometries(cubes);
+    mergedGeometry.computeVertexNormals();
+    var mesh = new THREE.Mesh(mergedGeometry, material);
+    return mesh;
 }
 
 
@@ -699,13 +689,7 @@ const generatePaperHeightVolume=(months,b,l,name,scale)=>{
        let len=l*4;
        const h=computeHeight(b,l*4,cases*scale);
        //const h=computeHeightStraight(cases,guiControlls.lineScaler);
-
-
        let multi=Math.ceil(h/(paperheight));
-
-     
-
-
 
     for(let i=0;i<3;i++){
         for(let j=0;j<3;j++){
@@ -715,7 +699,6 @@ const generatePaperHeightVolume=(months,b,l,name,scale)=>{
     
                 geo.rotateY(Math.random()*Math.PI/4)
                 console.log("shift",h,k,-multi*k,k*(paperheight))
-
                 //*b/4-b/2
                 geo.translate( ((-b/2+paperwidth/2)+j*paperwidth)+j*0.5, (-paperheight*k)-k*1,(-counter)-i*(len/3));
                 cubes.push(geo)
@@ -778,6 +761,9 @@ const makeLine=(months,b,l,h)=>{
     var cubes = []
     let myheight=5;
     let mywidth=5;
+
+    let  offset=b-((paperwidth*numCol)+((numCol-1)*gap));
+
     months.map((month)=>{
         let cases=parseInt(month[name], 10);
        let len=l*4;
@@ -788,7 +774,9 @@ const makeLine=(months,b,l,h)=>{
         var geo = new THREE.BoxBufferGeometry( mywidth, myheight, 0.1);
       //  geo.rotateZ(Math.PI/8)
        // geo.rotateY(Math.random()*Math.PI/2)
-        geo.translate( j*b/4-b/2, -h-myheight/2,(-counter)-i*(len/3));
+       // geo.translate( j*b/4-b/2, -h-myheight/2,(-counter)-i*(len/3));
+        geo.translate( -b/2+paperwidth/2 +j*paperwidth+offset/2 +j*gap, -h-myheight/2,(-counter)-i*(len/3));
+
         cubes.push(geo)
         }
     }

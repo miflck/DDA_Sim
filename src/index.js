@@ -197,9 +197,9 @@ var guiControlls = new function() {
     this.week_length = 10;
     this.factor = 4.94671225;//4.92;//6;
     this.topfactor = 4.92;
-    this.topshift = 300;
+    this.topshift = 350;
     this.topCase="Line"
-    this.lineScaler=800;
+    this.lineScaler=500;
 }
 
 // add gui params
@@ -592,8 +592,8 @@ const generatePaperHeight=(months,b,l,name,scale)=>{
        for(let i=0;i<3;i++){
         for(let j=0;j<numCol;j++){
             var geo = new THREE.BoxBufferGeometry( paperwidth, paperheight, 0.1);
-            geo.rotateZ(Math.PI/8)
-            geo.rotateY(Math.random()*Math.PI/2)
+           // geo.rotateZ(Math.PI/8)
+           // geo.rotateY(Math.random()*Math.PI/2)
         // geo.translate( j*b/4-b/2, -h-paperheight/2,(-counter)-i*(len/3));
             geo.translate( -b/2+paperwidth/2 +j*paperwidth+offset/2 +j*gap, -h-paperheight/2,(-counter)-i*(len/3));
             cubes.push(geo)
@@ -660,8 +660,8 @@ const generatePaperHeightDeviation=(months,b,l,name,scale)=>{
         for(let i=0;i<3;i++){
             for(let j=0;j<numCol;j++){
                 var geo = new THREE.BoxBufferGeometry( paperwidth, paperheight, 0.1);
-               // geo.rotateZ(Math.PI/8)
-               // geo.rotateY(Math.random()*Math.PI/2)
+               geo.rotateZ(Math.PI/8)
+                geo.rotateY(Math.random()*Math.PI/2)
                 //geo.translate( j*b/4-b/2, -h-paperheight/2,(-counter)-i*(len/3));
                 geo.translate( -b/2+paperwidth/2 +j*paperwidth+offset/2 +j*gap, -h-paperheight/2,(-counter)-i*(len/3));
 

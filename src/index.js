@@ -11,10 +11,19 @@ THREE.Cache.enabled = true;
 
 console.log("Hello Webpack")
 
+let totalLength;
+
 let paperheight=29
 let paperwidth=21
 let numCol=3;
-let gap=2;
+let gap=2; // papergap
+
+
+let lineGap=5;
+// total weeks of installation, should maybe generated from csv? now its hardcoded
+let totalWeeks=79; 
+// total weeks before first corona case
+let startWeeks=13
 
 const loader = new THREE.FileLoader();
 // meshes
@@ -134,7 +143,7 @@ loader.load(
 loader.load(
 	// resource URL
 	//'Arbeitslose 2020_maerz.csv',
-    'Arbeitslose 2020_maerz_inkldiff 2.csv',
+    'Arbeitslose_data.csv',
 	// onLoad callback
 	function ( data ) {
 		// output the text to the console
@@ -201,6 +210,16 @@ var guiControlls = new function() {
     this.topCase="Line"
     this.lineScaler=500;
 }
+
+
+const groundplanegeom = new THREE.PlaneGeometry( guiControlls.width_1+guiControlls.width_2+guiControlls.width_3+(2*lineGap), guiControlls.week_length*79 );
+const planemat = new THREE.MeshBasicMaterial( {color: 0xffff00, side: THREE.DoubleSide} );
+const plane = new THREE.Mesh( groundplanegeom, planemat );
+scene.add( plane );
+plane.rotateX(Math.PI/2)
+
+
+
 
 // add gui params
 const widthControlls = gui.addFolder("Breiten")
@@ -359,19 +378,20 @@ const makeTop=(months)=>{
             meshTop2.translateZ(400)
             meshTop2.translateY(guiControlls.topshift)
 
-            meshTop21=generatePaperHeightColor(months,guiControlls.width_2,guiControlls.week_length,"DS 40-49",guiControlls.topfactor)
+            meshTop21=generatePaperHeightColor(months,guiControlls.width_2,guiControlls.week_length,"DS 40-59",guiControlls.topfactor)
             scene.add(meshTop21)
             meshTop21.translateZ(400)
             meshTop21.translateY(guiControlls.topshift)
             
         
-            meshTop3=generatePaperHeight(months,guiControlls.width_3,guiControlls.week_length,"60-79",guiControlls.topfactor)
+           meshTop3=generatePaperHeight(months,guiControlls.width_3,guiControlls.week_length,"60-79",guiControlls.topfactor)
             scene.add(meshTop3);
             meshTop3.translateX((guiControlls.width_2/2)+(guiControlls.width_3/2)+5)
             meshTop3.translateZ(400)
             meshTop3.translateY(guiControlls.topshift)
 
-            meshTop31=generatePaperHeightColor(months,guiControlls.width_3,guiControlls.week_length,"Durchschnitt 60-79",guiControlls.topfactor)
+            
+            meshTop31=generatePaperHeightColor(months,guiControlls.width_3,guiControlls.week_length,"DS 60-79",guiControlls.topfactor)
             scene.add(meshTop31);
             meshTop31.translateX((guiControlls.width_2/2)+(guiControlls.width_3/2)+5)
             meshTop31.translateZ(400)
@@ -454,29 +474,30 @@ const makeTop=(months)=>{
 
 
 const makeFloor=(weeks)=>{
+    // delete old mesh
     scene.remove(mesh1);
     mesh1 = undefined;
     scene.remove(mesh2);
     mesh2 = undefined;
     scene.remove(mesh3);
     mesh3 = undefined;
-   // mesh1=generateForms(weeks,guiControlls.width_1,guiControlls.week_length,"20-29",guiControlls.factor)
+
+    // generate new mesh
     mesh1=generateForms(weeks,guiControlls.width_1,guiControlls.week_length,"20-39",guiControlls.factor)
+    mesh1.translateX(-(guiControlls.width_2/2)-(guiControlls.width_1/2)-lineGap)
+    // translate half length back as 0 is at half plane:790 /2
+    mesh1.translateZ((guiControlls.week_length*totalWeeks/2)-guiControlls.week_length/2-startWeeks*guiControlls.week_length)
     scene.add(mesh1);
 
-    mesh1.translateX(-(guiControlls.width_2/2)-(guiControlls.width_1/2)-5)
-    mesh1.translateZ(400)
     mesh2=generateForms(weeks,guiControlls.width_2,guiControlls.week_length,"40-59",guiControlls.factor)
-
-  //  mesh2=generateForms(weeks,guiControlls.width_2,guiControlls.week_length,"30-49",guiControlls.factor)
-    mesh2.translateZ(400)
+    mesh2.translateZ((guiControlls.week_length*totalWeeks/2)-guiControlls.week_length/2-startWeeks*guiControlls.week_length)
     scene.add(mesh2);
 
-   // mesh3=generateForms(weeks,guiControlls.width_3,guiControlls.week_length,"50-69",guiControlls.factor)
     mesh3=generateForms(weeks,guiControlls.width_3,guiControlls.week_length,"60-79",guiControlls.factor)
+    mesh3.translateX((guiControlls.width_2/2)+(guiControlls.width_3/2)+lineGap)
+    mesh3.translateZ((guiControlls.week_length*totalWeeks/2)-guiControlls.week_length/2-startWeeks*guiControlls.week_length)
     scene.add(mesh3);
-    mesh3.translateX((guiControlls.width_2/2)+(guiControlls.width_3/2)+5)
-    mesh3.translateZ(400)
+
     console.log("MAX CASES",maxCases)
 }
 
